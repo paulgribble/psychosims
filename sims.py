@@ -16,7 +16,7 @@ from scipy.stats import ttest_rel
 S = arange(5, 21, 3)        # number of subjects
 N = arange(5, 16, 2)        # trials per position
 E = arange(0.1, 3.1, 0.1)   # threshold shift (mm)
-X = 1000;                   # number of experiments
+X = 10000;                  # number of experiments per config
 
 nsims = len(S)*len(N)*len(E)*X
 i_count = 0
