@@ -35,16 +35,16 @@ void datastruct_free(datastruct *thedata) {
 }
 /* ========================================================================= */
 
-/* ================ THE LOGIT LINK FUNCTION AND ITS INVERSE ================ */
+/* ================ THE LOGISTIC LINK FUNCTION AND ITS INVERSE ================ */
 //
-// logit link function
-double logit(double y)
+// logistic link function
+double logistic(double y)
 {
   return 1 / (1 + exp(-y));
 }
 
-// inverse logit function
-double i_logit(double p, double b[])
+// inverse logistic function
+double i_logistic(double p, double b[])
 {
   return (log(-p / (p - 1)) - b[0]) / b[1];
 }
@@ -66,7 +66,7 @@ double nll(double x[], void *extra)
     pos = data[0][i];
     r = (int) data[1][i];
     y = x[0] + x[1]*pos;
-    p = logit(y); // logit link function
+    p = logistic(y); // logistic link function
     if (p>=1.0) {p = 1.0 - 1e-10;} // avoid numerical nasties
     if (p<=0.0) {p = 1e-10;}
     if (r==1) { neg_log_lik -= log(p); }
@@ -113,7 +113,7 @@ void *wrapper(void *voidin) {
   for (j=0; j<7; j++) {
     for (k=0; k<nreps; k++) {
       y = b[0] + (b[1] * x[j]);
-      p = logit(y);
+      p = logistic(y);
       r = (double) rand() / RAND_MAX;
       if (r <= p) { ds->data[1][kk] = 1.0; }
       else { ds->data[1][kk] = 0.0; }
@@ -170,8 +170,8 @@ int main(int argc, char *argv[]) {
   for (i=0; i<nsims; i++) {
     bb[0] = w[i].bb0;
     bb[1] = w[i].bb1;
-    x25 = i_logit(0.25, bb);
-    x75 = i_logit(0.75, bb);
+    x25 = i_logistic(0.25, bb);
+    x75 = i_logistic(0.75, bb);
     acuity = x75-x25;
     printf("%8.5f %8.5f %8.5f %8.5f %8.5f %8.5f %8.5f\n",
 	   bb[0], bb[1], -bb[0]/bb[1], bb[1]/4, x25, x75, acuity);
