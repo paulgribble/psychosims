@@ -33,8 +33,8 @@ for i_s in range(len(S)):
                           (S[i_s]*X, N[i_n], 0.0, b1) )
             sim2 = format("./sims %d %d %f %f > post" %
                           (S[i_s]*X, N[i_n], b0, b1) )
-            print sim1
-            print sim2
+            print( sim1 )
+            print( sim2 )
             tmp = os.system(sim1)
             tmp = os.system(sim2)
             pre = genfromtxt('pre')
@@ -45,13 +45,13 @@ for i_s in range(len(S)):
                 D05[i_s,i_n,i_e] += int((p<.05) and (t>0))
                 D01[i_s,i_n,i_e] += int((p<.01) and (t>0))
                 i_count += 1
-            print("%6d/%6d : S=%2d N=%2d E=%4.2f D05=%3d D01=%3d" %
+            print(("%6d/%6d : S=%2d N=%2d E=%4.2f D05=%3d D01=%3d" %
                   (i_count, nsims, S[i_s], N[i_n], E[i_e],
-                   D05[i_s,i_n,i_e], D01[i_s,i_n,i_e]) )
-            print " "
+                   D05[i_s,i_n,i_e], D01[i_s,i_n,i_e]) ) )
+            print( " " )
 D05 = D05 / float(X)
 D01 = D01 / float(X)
-print "done: simulated %d subjects" % (nsims)
+print( "done: simulated %d subjects" % (nsims) )
 
 figure(figsize=(16,8))
 for i in range(len(S)):
