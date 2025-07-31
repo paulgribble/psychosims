@@ -1,4 +1,6 @@
-# ipython --pylab
+# python3 -m venv .venv
+# source .venv/bin/activate
+# pip install scipy tqdm matplotlib
 
 # simulate a psychophysical experiment
 # estimate psychophysical function pre and post learning
@@ -12,60 +14,66 @@
 
 import os
 from scipy.stats import ttest_rel
+import matplotlib.pyplot as plt
+import numpy as np
+from tqdm import tqdm
+from tqdm import trange
+from itertools import product
 
-S = arange(5, 21, 3)        # number of subjects
-N = arange(5, 16, 2)        # trials per position
-E = arange(0.1, 3.1, 0.1)   # threshold shift (mm)
-X = 10000;                  # number of experiments per config
+S = np.arange(5, 21, 3)        # number of subjects
+N = np.arange(5, 16, 2)        # trials per position
+E = np.arange(0.1, 3.1, 0.1)   # threshold shift (mm)
+X = 10000;                     # number of experiments per config
 
 nsims = len(S)*len(N)*len(E)*X
 i_count = 0
 
-D05 = zeros((len(S),len(N),len(E)))
-D01 = zeros((len(S),len(N),len(E)))
+D05 = np.zeros((len(S),len(N),len(E)))
+D01 = np.zeros((len(S),len(N),len(E)))
 
-for i_s in range(len(S)):
-    for i_n in range(len(N)):
-        for i_e in range(len(E)):
-            b1 = 0.4  # slope
-            b0 = -b1 * E[i_e]
-            sim1 = format("./sims %d %d %f %f > pre" %
-                          (S[i_s]*X, N[i_n], 0.0, b1) )
-            sim2 = format("./sims %d %d %f %f > post" %
-                          (S[i_s]*X, N[i_n], b0, b1) )
-            print( sim1 )
-            print( sim2 )
-            tmp = os.system(sim1)
-            tmp = os.system(sim2)
-            pre = genfromtxt('pre')
-            post = genfromtxt('post')
-            for i_x in range(X):
-                i1, i2 = i_x*S[i_s], (i_x+1)*S[i_s]
-                t,p = ttest_rel(post[i1:i2,2],pre[i1:i2,2])
-                D05[i_s,i_n,i_e] += int((p<.05) and (t>0))
-                D01[i_s,i_n,i_e] += int((p<.01) and (t>0))
-                i_count += 1
-            print(("%6d/%6d : S=%2d N=%2d E=%4.2f D05=%3d D01=%3d" %
-                  (i_count, nsims, S[i_s], N[i_n], E[i_e],
-                   D05[i_s,i_n,i_e], D01[i_s,i_n,i_e]) ) )
-            print( " " )
+# Define the grid of parameter combinations
+param_grid = list(product(range(len(S)), range(len(N)), range(len(E))))
+
+# Total number of innermost simulations
+total_steps = len(param_grid) * X
+
+with tqdm(total=total_steps, desc="Total Simulations") as pbar:
+    for i_s, i_n, i_e in param_grid:
+        b1 = 0.4
+        b0 = -b1 * E[i_e]
+        sim1 = format("./sims %d %d %f %f > pre" % (S[i_s]*X, N[i_n], 0.0, b1))
+        sim2 = format("./sims %d %d %f %f > post" % (S[i_s]*X, N[i_n], b0, b1))
+        os.system(sim1)
+        os.system(sim2)
+        pre = np.genfromtxt('pre')
+        post = np.genfromtxt('post')
+
+        for i_x in range(X):
+            i1, i2 = i_x * S[i_s], (i_x + 1) * S[i_s]
+            t, pval = ttest_rel(post[i1:i2, 2], pre[i1:i2, 2])
+            D05[i_s, i_n, i_e] += int((pval < .05) and (t > 0))
+            D01[i_s, i_n, i_e] += int((pval < .01) and (t > 0))
+            pbar.update(1)
+            #       (i_count, nsims, S[i_s], N[i_n], E[i_e],
+            #        D05[i_s,i_n,i_e], D01[i_s,i_n,i_e]) ) )
+            # print( " " )
 D05 = D05 / float(X)
 D01 = D01 / float(X)
 print( "done: simulated %d subjects" % (nsims) )
 
-figure(figsize=(16,8))
+plt.figure(figsize=(16,8))
 for i in range(len(S)):
-    subplot(2,3,i+1)
+    plt.subplot(2,3,i+1)
     for j in range(len(N)):
-        plot(E,D05[i,j,:],'-')
-    ylim(0,1)
-    xlim(min(E),max(E))
-    title("%d Subjects" % S[i])
-    grid(1)
+        plt.plot(E,D05[i,j,:],'-')
+    plt.ylim(0,1)
+    plt.xlim(min(E),max(E))
+    plt.title("%d Subjects" % S[i])
+    plt.grid(1)
     if (i>2):
-        xlabel("Threshold shift (mm)")
+        plt.xlabel("Threshold shift (mm)")
     if (i==0 or i==3):
-        ylabel("Power at p<0.05")
+        plt.ylabel("Power at p<0.05")
     if (i==5):
-        legend(N, loc=4, title="Trials")
-savefig("psychosims.pdf")
+        plt.legend(N, loc=4, title="Trials")
+plt.savefig("psychosims.pdf")

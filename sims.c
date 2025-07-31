@@ -1,4 +1,4 @@
-// gcc -Wall -O3 -o sims sims.c nmsimplex.c -lm -fopenmp
+// gcc-15 -Wall -O3 -o sims sims.c nmsimplex.c -lm -fopenmp
 
 #include "nmsimplex.h"
 #include <stdio.h>
